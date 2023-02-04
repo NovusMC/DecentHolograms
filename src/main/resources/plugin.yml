@@ -8,16 +8,3 @@ name: DecentHolograms
 description: ${description}
 version: ${version}
 author: d0by
-
-commands:
-  decentholograms:
-    aliases: [dh, holograms, hologram, holo]
-    usage: /decentholograms <args>
-    description: The main command of DecentHolograms plugin.
-
-permissions:
-  dh.admin:
-    description: Allows player to use DecentHolograms.
-  dh.default:
-    default: true
-    description: Allows player to see the version after using '/decentholograms'.
