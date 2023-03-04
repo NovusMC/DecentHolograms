@@ -5,6 +5,7 @@ import eu.decentsoftware.holograms.api.actions.Action;
 import eu.decentsoftware.holograms.api.actions.ClickType;
 import eu.decentsoftware.holograms.api.holograms.enums.EnumFlag;
 import eu.decentsoftware.holograms.api.holograms.objects.FlagHolder;
+import eu.decentsoftware.holograms.api.nms.NMS;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -24,10 +25,9 @@ public class HologramPage extends FlagHolder {
 
     private int index;
     private final @NonNull Hologram parent;
+    private final @NonNull List<Integer> clickableEntityIds;
     private final @NonNull List<HologramLine> lines;
     private final @NonNull Map<ClickType, List<Action>> actions;
-    protected boolean alwaysFacePlayer;
-    protected boolean clickable;
 
     /*
      *	Constructors
@@ -36,19 +36,14 @@ public class HologramPage extends FlagHolder {
     public HologramPage(@NonNull Hologram parent, int index) {
         this.parent = parent;
         this.index = index;
+        this.clickableEntityIds = new ArrayList<>();
         this.lines = new ArrayList<>();
         this.actions = new EnumMap<>(ClickType.class);
-        this.alwaysFacePlayer = parent.isAlwaysFacePlayer();
     }
 
     /*
      *	General Methods
      */
-
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public boolean hasOffsets() {
-        return true; // Not used, just ignore.
-    }
 
     /**
      * Get the current parent hologram of this page.
@@ -107,7 +102,6 @@ public class HologramPage extends FlagHolder {
             actionsMap.put(entry.getKey().name(), entry.getValue().stream().map(Action::toString).collect(Collectors.toList()));
         }
         map.put("actions", actionsMap);
-//        map.put("always-face-player", isAlwaysFacePlayer());
         return map;
     }
 
@@ -123,7 +117,6 @@ public class HologramPage extends FlagHolder {
             }
         }
         page.addFlags(this.getFlags().toArray(new EnumFlag[0]));
-//        page.setAlwaysFacePlayer(isAlwaysFacePlayer());
         return page;
     }
 
@@ -279,14 +272,18 @@ public class HologramPage extends FlagHolder {
      */
 
     public boolean isClickable() {
-        if (parent.hasFlag(EnumFlag.DISABLE_ACTIONS)) {
-            return false;
+        return parent.isClickable() || (!parent.hasFlag(EnumFlag.DISABLE_ACTIONS) && hasActions());
+    }
+
+    public int getClickableEntityId(int index) {
+        if (index >= clickableEntityIds.size()) {
+            clickableEntityIds.add(NMS.getInstance().getFreeEntityId());
         }
-        return hasActions();
+        return clickableEntityIds.get(index);
     }
 
     public boolean hasEntity(int eid) {
-        return lines.stream().anyMatch(line -> line.getEntityIds()[0] == eid || line.getEntityIds()[1] == eid);
+        return clickableEntityIds.contains(eid) || lines.stream().anyMatch(line -> line.getEntityIds()[0] == eid || line.getEntityIds()[1] == eid);
     }
 
     public void addAction(@NonNull ClickType clickType, @NonNull Action action) {

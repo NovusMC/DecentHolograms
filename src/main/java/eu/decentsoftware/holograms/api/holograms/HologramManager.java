@@ -20,7 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 /**
- * This class represents a Manager for handling holograms.
+ * This class is a manager that handles all holograms. It is responsible for
+ * loading, saving, creating, deleting, and updating holograms.
  */
 public class HologramManager extends Ticked {
 
@@ -30,7 +31,7 @@ public class HologramManager extends Ticked {
 	private final @NonNull Set<HologramLine> temporaryLines;
 
 	/**
-	 * Map of holograms to load, when their respective worls loads.
+	 * Map of holograms to load, when their respective world loads.
 	 * <p>
 	 * There were issues with world management plugins loading worlds
 	 * after holograms. Due to that, holograms in these worlds were skipped
@@ -120,7 +121,7 @@ public class HologramManager extends Ticked {
 	 * @return True if the click was processed, false otherwise.
 	 */
 	public boolean onClick(@NonNull Player player, int entityId, @NonNull ClickType clickType) {
-		UUID uid = player.getUniqueId();
+		final UUID uid = player.getUniqueId();
 
 		// Check if the player is on cooldown.
 		if (clickCooldowns.containsKey(uid) && System.currentTimeMillis() - clickCooldowns.get(uid) < Settings.CLICK_COOLDOWN * 50L) {
@@ -128,14 +129,23 @@ public class HologramManager extends Ticked {
 		}
 
 		for (Hologram hologram : Hologram.getCachedHolograms()) {
-			if (hologram.isVisible(player)) {
-				// Do not process the click if the player is more than 10 blocks away from the hologram.
-				if (hologram.getLocation().distanceSquared(player.getLocation()) < 100) {
-					if (hologram.onClick(player, entityId, clickType)) {
-						clickCooldowns.put(uid, System.currentTimeMillis());
-						return true;
-					}
-				}
+			if (!hologram.isVisible(player)) {
+				continue;
+			}
+
+			if (!hologram.getLocation().getWorld().equals(player.getLocation().getWorld())) {
+				continue;
+			}
+
+			// Limit the distance to 5 blocks, this is to prevent
+			// any possible exploits with the entity ID.
+			if (hologram.getLocation().distanceSquared(player.getLocation()) > 25) {
+				continue;
+			}
+
+			if (hologram.onClick(player, entityId, clickType)) {
+				clickCooldowns.put(uid, System.currentTimeMillis());
+				return true;
 			}
 		}
 
