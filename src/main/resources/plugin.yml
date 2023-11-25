@@ -1,10 +1,10 @@
-main: "eu.decentsoftware.holograms.plugin.DecentHologramsPlugin"
+main: eu.decentsoftware.holograms.plugin.DecentHologramsPlugin
 api-version: 1.13
 softdepend:
-  - "PlaceholderAPI"
-  - "HeadDatabase"
-  - "ProtocolLib"
-name: "DecentHolograms"
+  - PlaceholderAPI
+  - HeadDatabase
+  - ProtocolLib
+name: DecentHolograms
 description: ${description}
 version: ${version}
 author: d0by
